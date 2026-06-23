@@ -191,14 +191,41 @@
             );
         };
 
+        const modalityImages = {
+            'ctpet': 'CT & PET.jpg',
+            'dermoscopy': 'Dermoscopy.jpg',
+            'endoscopy': 'Endoscopy.jpg',
+            'fundus': 'Fundus.jpg',
+            'mri': 'MRI.jpg',
+            'microscopy': 'Microscopy.jpg',
+            'octa': 'OCTA.jpg',
+            'oct': 'OCT.jpeg',
+            'ultrasound': 'Ultrasound.jpg',
+            'xray': 'X-Ray.jpg'
+        };
+
         const App = () => {
             const [error, setError] = useState(null);
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [filters, setFilters] = useState({ bodyPart: [], anatomicalArea: [], modality: [] });
             const [searchQuery, setSearchQuery] = useState('');
-            const [currentPage, setCurrentPage] = useState(1);
-            const rowsPerPage = 15;
+            const [hoveredModality, setHoveredModality] = useState(null);
+            const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
+
+            const handleMouseMove = (e, modality) => {
+                const tooltipWidth = 210;
+                const tooltipHeight = 180;
+                let left = e.clientX + 12;
+                let top = e.clientY + 12;
+                if (left + tooltipWidth > window.innerWidth) {
+                    left = e.clientX - tooltipWidth - 12;
+                }
+                if (top + tooltipHeight > window.innerHeight) {
+                    top = e.clientY - tooltipHeight - 12;
+                }
+                setTooltipPos({ top, left });
+            };
 
             // live sheet
             // useEffect(() => {
@@ -273,9 +300,10 @@
                                 const websiteVal = row['Website'] !== undefined && row['Website'] !== null ? String(row['Website']).trim() : '';
                                 const bodyPartVal = row['Body Part'] !== undefined && row['Body Part'] !== null ? String(row['Body Part']).trim() : 'Unknown';
                                 const anatomicalAreaVal = row['Anatomical Area'] !== undefined && row['Anatomical Area'] !== null ? String(row['Anatomical Area']).trim() : 'Unknown';
-                                const modalityVal = row['Modality'] !== undefined && row['Modality'] !== null ? String(row['Modality']).trim() : 'Unknown';
+                                const modalityVal = row['Broad Modality'] !== undefined && row['Broad Modality'] !== null ? String(row['Broad Modality']).trim() : 'Unknown';
                                 const hostingPlatformVal = row['Hosting Platform'] !== undefined && row['Hosting Platform'] !== null ? String(row['Hosting Platform']).trim() : 'Unknown';
                                 const yearVal = row['Year'] !== undefined && row['Year'] !== null ? String(row['Year']).trim() : 'Unknown';
+                                const datasetSizeVal = row['Dataset Size'] !== undefined && row['Dataset Size'] !== null ? String(row['Dataset Size']).trim() : 'Unknown';
 
                                 return {
                                     name: nameVal,
@@ -285,6 +313,7 @@
                                     modality: modalityVal === '' ? 'Unknown' : modalityVal,
                                     hostingPlatform: hostingPlatformVal === '' ? 'Unknown' : hostingPlatformVal,
                                     year: yearVal === '' ? 'Unknown' : yearVal,
+                                    datasetSize: datasetSizeVal === '' ? 'Unknown' : datasetSizeVal,
                                     numImages: parseNum(row['# Images']),
                                     numSamples: parseNum(row['# Samples']),
                                     sizeGb: parseNum(row['Size (GB)'])
@@ -334,21 +363,16 @@
 
 
 
-            // Pagination logic
-            const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
-            useEffect(() => {
-                if (currentPage > totalPages) setCurrentPage(1);
-            }, [filteredData, totalPages, currentPage]);
 
-            const currentData = filteredData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
             const handleExportCSV = () => {
-                const headers = ['Dataset Name', 'Modality', 'Body Part', 'Anatomical Area', 'Website URL'];
+                const headers = ['Dataset Name', 'Modality', 'Body Part', 'Anatomical Area', 'Dataset Size', 'Website URL'];
                 const rows = filteredData.map(item => [
                     item.name,
                     item.modality,
                     item.bodyPart,
                     item.anatomicalArea,
+                    item.datasetSize,
                     item.website || ''
                 ]);
 
@@ -427,7 +451,6 @@
                                                 onClick={() => {
                                                     setFilters({ bodyPart: [], anatomicalArea: [], modality: [] });
                                                     setSearchQuery('');
-                                                    setCurrentPage(1);
                                                 }}
                                                 className="text-xs font-semibold text-aggie-maroon hover:text-red-900 flex items-center gap-1 transition-colors outline-none cursor-pointer self-start sm:self-center"
                                             >
@@ -449,7 +472,6 @@
                                                     value={searchQuery}
                                                     onChange={(e) => {
                                                         setSearchQuery(e.target.value);
-                                                        setCurrentPage(1);
                                                     }}
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') e.preventDefault();
@@ -471,7 +493,6 @@
                                             selected={filters.bodyPart}
                                             onChange={(val) => {
                                                 setFilters(prev => ({ ...prev, bodyPart: val }));
-                                                setCurrentPage(1);
                                             }}
                                         />
                                         <MultiSelect
@@ -480,7 +501,6 @@
                                             selected={filters.anatomicalArea}
                                             onChange={(val) => {
                                                 setFilters(prev => ({ ...prev, anatomicalArea: val }));
-                                                setCurrentPage(1);
                                             }}
                                         />
                                         <MultiSelect
@@ -489,7 +509,6 @@
                                             selected={filters.modality}
                                             onChange={(val) => {
                                                 setFilters(prev => ({ ...prev, modality: val }));
-                                                setCurrentPage(1);
                                             }}
                                         />
                                     </div>
@@ -528,12 +547,13 @@
                                                     <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Modality</th>
                                                     <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Body Part</th>
                                                     <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Anatomical Area</th>
+                                                    <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dataset Size</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100 bg-white">
-                                                {currentData.length > 0 ? currentData.map((row, idx) => (
+                                                {filteredData.length > 0 ? filteredData.map((row, idx) => (
                                                     <tr key={`${row.name}-${idx}`} className="hover:bg-slate-50/70 transition-colors duration-150">
-                                                        <td className="whitespace-nowrap py-4 px-6 text-sm font-semibold text-gray-900">
+                                                        <td className="py-4 px-6 text-sm font-semibold text-gray-900 break-words max-w-xs">
                                                             {row.website ? (
                                                                 <a
                                                                     href={row.website}
@@ -547,21 +567,33 @@
                                                                 row.name
                                                             )}
                                                         </td>
-                                                        <td className="whitespace-nowrap py-4 px-6 text-sm text-gray-500">
+                                                        <td className="py-4 px-6 text-sm text-gray-500">
                                                             <div className="flex flex-wrap gap-1.5">
                                                                 {row.modality.split(',').map((mod, i) => {
                                                                     const m = mod.trim();
                                                                     let badgeClass = "bg-slate-50 text-slate-700 border-slate-200/80";
-                                                                    if (/CT/i.test(m)) badgeClass = "bg-sky-50 text-sky-700 border-sky-200/60";
-                                                                    else if (/MR|MRI/i.test(m)) badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-                                                                    else if (/X-Ray|XR|Radiograph/i.test(m)) badgeClass = "bg-violet-50 text-violet-700 border-violet-200/60";
-                                                                    else if (/US|Ultrasound/i.test(m)) badgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
-                                                                    else if (/PET/i.test(m)) badgeClass = "bg-rose-50 text-rose-700 border-rose-200/60";
-                                                                    else if (/Mammography|MG/i.test(m)) badgeClass = "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/60";
-                                                                    else if (/Pathology/i.test(m)) badgeClass = "bg-teal-50 text-teal-700 border-teal-200/60";
+                                                                    if (/CT & PET/i.test(m)) badgeClass = "bg-cyan-50 text-cyan-700 border-cyan-200/60";
+                                                                    else if (/MRI/i.test(m)) badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
+                                                                    else if (/X-Ray/i.test(m)) badgeClass = "bg-violet-50 text-violet-700 border-violet-200/60";
+                                                                    else if (/Ultrasound/i.test(m)) badgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
+                                                                    else if (/Microscopy/i.test(m)) badgeClass = "bg-purple-50 text-purple-700 border-purple-200/60";
+                                                                    else if (/Fundus/i.test(m)) badgeClass = "bg-teal-50 text-teal-700 border-teal-200/60";
+                                                                    else if (/OCTA/i.test(m)) badgeClass = "bg-indigo-50 text-indigo-700 border-indigo-200/60";
+                                                                    else if (/Endoscopy/i.test(m)) badgeClass = "bg-orange-50 text-orange-700 border-orange-200/60";
+                                                                    else if (/Dermoscopy/i.test(m)) badgeClass = "bg-rose-50 text-rose-700 border-rose-200/60";
 
                                                                     return (
-                                                                        <span key={i} className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeClass}`}>
+                                                                        <span
+                                                                            key={i}
+                                                                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-all duration-150 cursor-help ${badgeClass}`}
+                                                                            onMouseEnter={() => {
+                                                                                const normalized = m.toLowerCase().replace(/amp/g, '').replace(/and/g, '').replace(/[^a-z0-9]/g, '');
+                                                                                console.log("Hovered modality raw:", m, "Normalized key:", normalized, "Image file:", modalityImages[normalized]);
+                                                                                setHoveredModality(m);
+                                                                            }}
+                                                                            onMouseMove={(e) => handleMouseMove(e, m)}
+                                                                            onMouseLeave={() => setHoveredModality(null)}
+                                                                        >
                                                                             {m}
                                                                         </span>
                                                                     );
@@ -578,10 +610,15 @@
                                                                 {row.anatomicalArea}
                                                             </span>
                                                         </td>
+                                                        <td className="whitespace-nowrap py-4 px-6 text-sm">
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100/60">
+                                                                {row.datasetSize}
+                                                            </span>
+                                                        </td>
                                                     </tr>
                                                 )) : (
                                                     <tr>
-                                                        <td colSpan="4" className="py-16 text-center text-sm text-gray-500">
+                                                        <td colSpan="5" className="py-16 text-center text-sm text-gray-500">
                                                             <div className="flex flex-col items-center justify-center">
                                                                 <svg className="w-8 h-8 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                                                                 No datasets match the current filter selection.
@@ -593,41 +630,7 @@
                                         </table>
                                     </div>
 
-                                    {/* Pagination Controls */}
-                                    <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/30 px-6 py-4">
-                                        <div className="flex flex-1 items-center justify-between">
-                                            <div>
-                                                <p className="text-xs font-semibold text-slate-400">
-                                                    Showing <span className="font-bold text-slate-700">{filteredData.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}</span> to <span className="font-bold text-slate-700">{Math.min(currentPage * rowsPerPage, filteredData.length)}</span> of <span className="font-bold text-slate-700">{filteredData.length}</span> datasets
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <nav className="isolate inline-flex gap-2" aria-label="Pagination">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                                        disabled={currentPage === 1}
-                                                        className="relative inline-flex items-center rounded-lg bg-white border border-slate-200/80 px-3 py-2 text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-slate-500 transition-all outline-none cursor-pointer text-xs font-bold shadow-sm"
-                                                    >
-                                                        <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" /></svg>
-                                                        Prev
-                                                    </button>
-                                                    <span className="relative inline-flex items-center px-3 py-2 text-xs font-semibold text-slate-500 bg-slate-100/50 border border-slate-200/50 rounded-lg">
-                                                        Page {currentPage} of {totalPages}
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                                        disabled={currentPage === totalPages}
-                                                        className="relative inline-flex items-center rounded-lg bg-white border border-slate-200/80 px-3 py-2 text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-slate-500 transition-all outline-none cursor-pointer text-xs font-bold shadow-sm"
-                                                    >
-                                                        Next
-                                                        <svg className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" /></svg>
-                                                    </button>
-                                                </nav>
-                                            </div>
-                                        </div>
-                                    </div>
+
                                 </div>
                             </div>
                         )}
@@ -641,6 +644,27 @@
                             </p>
                         </div>
                     </footer>
+
+                    {/* Hover Image Tooltip */}
+                    {hoveredModality && modalityImages[hoveredModality.toLowerCase().replace(/amp/g, '').replace(/and/g, '').replace(/[^a-z0-9]/g, '')] && (
+                        <div
+                            className="fixed z-50 pointer-events-none p-2 bg-white/95 backdrop-blur-sm border border-slate-200/80 shadow-2xl rounded-xl flex flex-col items-center gap-1.5 transition-all duration-100 ease-out"
+                            style={{
+                                top: tooltipPos.top,
+                                left: tooltipPos.left,
+                                width: '200px'
+                            }}
+                        >
+                            <img
+                                src={`hover_images/${encodeURIComponent(modalityImages[hoveredModality.toLowerCase().replace(/amp/g, '').replace(/and/g, '').replace(/[^a-z0-9]/g, '')])}`}
+                                alt={hoveredModality}
+                                className="w-full h-40 rounded-lg object-cover shadow-sm border border-slate-100"
+                            />
+                            <div className="text-[11px] font-bold text-slate-700 tracking-wide uppercase px-1 py-0.5">
+                                {hoveredModality}
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
