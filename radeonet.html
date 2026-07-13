@@ -7,7 +7,7 @@
     <title>RADEO-Net | Medical Foundation Model Datasets</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -16,6 +16,7 @@
                 extend: {
                     fontFamily: {
                         sans: ['Outfit', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
                     },
                     colors: {
                         'aggie-maroon': '#500000',
@@ -191,6 +192,8 @@
             );
         };
 
+        /*
+        // Broad modality hover image preview mapping (commented out for future use):
         const modalityImages = {
             'ctpet': 'CT & PET.jpg',
             'dermoscopy': 'Dermoscopy.jpg',
@@ -203,6 +206,25 @@
             'ultrasound': 'Ultrasound.jpg',
             'xray': 'X-Ray.jpg'
         };
+        */
+
+        const floatingImages = [
+            // Background Layer (bgDrift): Small, slow, slightly blurred
+            { name: 'Microscopy.jpg', top: '10%', duration: '60s', delay: '0s', size: '55px', anim: 'bgDrift' },
+            { name: 'OCT.jpeg', top: '35%', duration: '55s', delay: '-18s', size: '60px', anim: 'bgDrift' },
+            { name: 'OCTA.jpg', top: '55%', duration: '58s', delay: '-35s', size: '50px', anim: 'bgDrift' },
+            
+            // Midground Layer (midDrift): Medium size, moderate speed
+            { name: 'CT & PET.jpg', top: '15%', duration: '44s', delay: '-8s', size: '85px', anim: 'midDrift' },
+            { name: 'Dermoscopy.jpg', top: '30%', duration: '40s', delay: '-22s', size: '90px', anim: 'midDrift' },
+            { name: 'Endoscopy.jpg', top: '45%', duration: '46s', delay: '-32s', size: '80px', anim: 'midDrift' },
+            { name: 'Fundus.jpg', top: '60%', duration: '42s', delay: '-14s', size: '95px', anim: 'midDrift' },
+            
+            // Foreground Layer (fgDrift): Large, faster, sharp
+            { name: 'MRI.jpg', top: '5%', duration: '32s', delay: '-4s', size: '120px', anim: 'fgDrift' },
+            { name: 'X-Ray.jpg', top: '25%', duration: '28s', delay: '-16s', size: '130px', anim: 'fgDrift' },
+            { name: 'Ultrasound.jpg', top: '40%', duration: '30s', delay: '-26s', size: '125px', anim: 'fgDrift' },
+        ];
 
         const App = () => {
             const [error, setError] = useState(null);
@@ -210,6 +232,57 @@
             const [loading, setLoading] = useState(true);
             const [filters, setFilters] = useState({ bodyPart: [], anatomicalArea: [], modality: [] });
             const [searchQuery, setSearchQuery] = useState('');
+
+            const getBadgeColorClass = (text) => {
+                if (!text || text === 'Unknown') return "bg-slate-50 text-slate-600 border-slate-200/60";
+                const colors = [
+                    "bg-sky-50 text-sky-700 border-sky-200/60",
+                    "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+                    "bg-violet-50 text-violet-700 border-violet-200/60",
+                    "bg-amber-50 text-amber-700 border-amber-200/60",
+                    "bg-rose-50 text-rose-700 border-rose-200/60",
+                    "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/60",
+                    "bg-teal-50 text-teal-700 border-teal-200/60",
+                    "bg-indigo-50 text-indigo-700 border-indigo-200/60",
+                    "bg-cyan-50 text-cyan-700 border-cyan-200/60",
+                    "bg-orange-50 text-orange-700 border-orange-200/60"
+                ];
+                let hash = 0;
+                for (let i = 0; i < text.length; i++) {
+                    hash = text.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return colors[Math.abs(hash) % colors.length];
+            };
+
+            // Heatmap: green (small) → yellow → red (large) for numeric dataset sizes.
+            // Returns an inline style object; Unknown / non-numeric gets a neutral grey.
+            const getSizeHeatmapStyle = (sizeStr, allSizes) => {
+                const n = parseFloat(String(sizeStr).replace(/,/g, ''));
+                if (isNaN(n) || n <= 0) return { background: '#f1f5f9', color: '#475569', border: '1px solid rgba(203,213,225,0.6)' };
+                const logN = Math.log10(n);
+                const logMin = Math.log10(Math.max(1, Math.min(...allSizes.filter(x => x > 0))));
+                const logMax = Math.log10(Math.max(...allSizes.filter(x => x > 0)));
+                const t = logMin === logMax ? 0.5 : Math.max(0, Math.min(1, (logN - logMin) / (logMax - logMin)));
+                // green #22c55e → yellow #eab308 → red #ef4444
+                let r, g, b;
+                if (t < 0.5) {
+                    const s = t * 2;
+                    r = Math.round(34  + (234 - 34)  * s);
+                    g = Math.round(197 + (179 - 197) * s);
+                    b = Math.round(94  + (8   - 94)  * s);
+                } else {
+                    const s = (t - 0.5) * 2;
+                    r = Math.round(234 + (239 - 234) * s);
+                    g = Math.round(179 + (68  - 179) * s);
+                    b = Math.round(8   + (68  - 8)   * s);
+                }
+                const bg = `rgba(${r},${g},${b},0.15)`;
+                const text = `rgb(${Math.round(r*0.6)},${Math.round(g*0.6)},${Math.round(b*0.6)})`;
+                const border = `rgba(${r},${g},${b},0.35)`;
+                return { background: bg, color: text, border: `1px solid ${border}` };
+            };
+            /*
+            // Broad modality hover preview state & handlers (commented out for future use):
             const [hoveredModality, setHoveredModality] = useState(null);
             const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
 
@@ -226,6 +299,7 @@
                 }
                 setTooltipPos({ top, left });
             };
+            */
 
             // live sheet
             // useEffect(() => {
@@ -259,7 +333,7 @@
             // Downloaded sheet
             useEffect(() => {
                 // Make sure this matches the exact filename of the Excel file in your GitHub repo
-                const fileUrl = encodeURI('./Medical Imaging Datasets.xlsx');
+                const fileUrl = encodeURI('./BioVFM Datasets.xlsx');
 
                 const parseNum = (val) => {
                     if (val === undefined || val === null) return 0;
@@ -278,45 +352,49 @@
                         // Parse the Excel file buffer
                         const workbook = XLSX.read(buffer, { type: 'array' });
 
-                        // Look specifically for 'Sheet1', or fallback to the first sheet
-                        const sheetName = workbook.SheetNames.includes('Sheet1')
-                            ? 'Sheet1'
+                        // Look specifically for 'Website', or fallback to the first sheet
+                        const sheetName = workbook.SheetNames.includes('Website')
+                            ? 'Website'
                             : workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[sheetName];
 
                         // Convert that specific sheet to an array of JavaScript objects
                         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-                        // Filter and map the data exactly as we did before
+                        // Filter and map the data from the Website sheet
+                        const normalize = (val, fallback = 'Unknown') => {
+                            if (val === undefined || val === null) return fallback;
+                            const s = String(val).trim();
+                            return (s === '' || s === '0') ? fallback : s;
+                        };
+
+                        const seenNames = new Set();
                         const parsedData = jsonData
                             .filter(row => {
-                                const hasName = row['Name'] !== undefined && row['Name'] !== null && String(row['Name']).trim() !== '';
-                                const isDownloaded = row['Downloaded'] === true ||
-                                    (row['Downloaded'] !== undefined && row['Downloaded'] !== null && String(row['Downloaded']).trim().toLowerCase() === 'true');
-                                return hasName && isDownloaded;
+                                const rawName = row['Name'] !== undefined && row['Name'] !== null ? String(row['Name']).trim() : '';
+                                // Skip blank or literal "0" names
+                                if (rawName === '' || rawName === '0') return false;
+                                // Deduplicate: keep first occurrence only
+                                if (seenNames.has(rawName)) return false;
+                                seenNames.add(rawName);
+                                return true;
                             })
                             .map(row => {
-                                const nameVal = row['Name'] !== undefined && row['Name'] !== null ? String(row['Name']).trim() : '';
-                                const websiteVal = row['Website'] !== undefined && row['Website'] !== null ? String(row['Website']).trim() : '';
-                                const bodyPartVal = row['Body Part'] !== undefined && row['Body Part'] !== null ? String(row['Body Part']).trim() : 'Unknown';
-                                const anatomicalAreaVal = row['Anatomical Area'] !== undefined && row['Anatomical Area'] !== null ? String(row['Anatomical Area']).trim() : 'Unknown';
-                                const modalityVal = row['Broad Modality'] !== undefined && row['Broad Modality'] !== null ? String(row['Broad Modality']).trim() : 'Unknown';
-                                const hostingPlatformVal = row['Hosting Platform'] !== undefined && row['Hosting Platform'] !== null ? String(row['Hosting Platform']).trim() : 'Unknown';
-                                const yearVal = row['Year'] !== undefined && row['Year'] !== null ? String(row['Year']).trim() : 'Unknown';
-                                const datasetSizeVal = row['Dataset Size'] !== undefined && row['Dataset Size'] !== null ? String(row['Dataset Size']).trim() : 'Unknown';
+                                const nameVal = String(row['Name']).trim();
+                                // BioVFM Website sheet uses 'Link' for the dataset URL
+                                const websiteVal = row['Link'] !== undefined && row['Link'] !== null ? String(row['Link']).trim() : '';
+                                const bodyPartVal      = normalize(row['Body Part']);
+                                const anatomicalAreaVal = normalize(row['Anatomical Area']);
+                                const modalityVal      = normalize(row['Modality']);
+                                const datasetSizeVal   = normalize(row['Dataset Size']);
 
                                 return {
                                     name: nameVal,
                                     website: websiteVal,
-                                    bodyPart: bodyPartVal === '' ? 'Unknown' : bodyPartVal,
-                                    anatomicalArea: anatomicalAreaVal === '' ? 'Unknown' : anatomicalAreaVal,
-                                    modality: modalityVal === '' ? 'Unknown' : modalityVal,
-                                    hostingPlatform: hostingPlatformVal === '' ? 'Unknown' : hostingPlatformVal,
-                                    year: yearVal === '' ? 'Unknown' : yearVal,
-                                    datasetSize: datasetSizeVal === '' ? 'Unknown' : datasetSizeVal,
-                                    numImages: parseNum(row['# Images']),
-                                    numSamples: parseNum(row['# Samples']),
-                                    sizeGb: parseNum(row['Size (GB)'])
+                                    bodyPart: bodyPartVal,
+                                    anatomicalArea: anatomicalAreaVal,
+                                    modality: modalityVal,
+                                    datasetSize: datasetSizeVal,
                                 };
                             });
 
@@ -337,7 +415,8 @@
                 const allMods = new Set();
                 data.forEach(item => {
                     if (item.modality) {
-                        String(item.modality).split(',').forEach(m => allMods.add(m.trim()));
+                        // BioVFM uses semicolons as separators; also support commas for compatibility
+                        String(item.modality).split(/[;,]/).forEach(m => { const t = m.trim(); if (t) allMods.add(t); });
                     }
                 });
                 return [...Array.from(allMods).sort()];
@@ -354,7 +433,7 @@
                     const matchBody = filters.bodyPart.length === 0 || filters.bodyPart.includes(itemBody);
                     const matchArea = filters.anatomicalArea.length === 0 || filters.anatomicalArea.includes(itemArea);
                     const matchModality = filters.modality.length === 0 ||
-                        itemModality.split(',').map(m => m.trim()).some(m => filters.modality.includes(m));
+                        itemModality.split(/[;,]/).map(m => m.trim()).some(m => filters.modality.includes(m));
                     const matchSearch = searchQuery.trim() === '' ||
                         itemName.toLowerCase().includes(searchQuery.toLowerCase());
                     return matchBody && matchArea && matchModality && matchSearch;
@@ -364,6 +443,13 @@
 
 
 
+
+            // Pre-compute all numeric sizes for the heatmap scale
+            const numericSizes = useMemo(() => {
+                return data
+                    .map(item => parseFloat(String(item.datasetSize).replace(/,/g, '')))
+                    .filter(n => !isNaN(n) && n > 0);
+            }, [data]);
 
             const handleExportCSV = () => {
                 const headers = ['Dataset Name', 'Modality', 'Body Part', 'Anatomical Area', 'Dataset Size', 'Website URL'];
@@ -399,8 +485,52 @@
                 <div className="min-h-screen flex flex-col font-sans">
                     {/* Header */}
                     <header className="bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950 text-white relative overflow-hidden py-16 border-b border-rose-900/40">
+                        <style>{`
+                            @keyframes bgDrift {
+                                0% { transform: translate(-120px, 30px) scale(0.9) rotate(-3deg); filter: grayscale(100%) contrast(125%) blur(5px); opacity: 0; }
+                                15% { opacity: 0.15; }
+                                50% { filter: grayscale(100%) contrast(125%) blur(1.5px); opacity: 0.25; transform: translate(50vw, 0px) scale(0.95) rotate(0deg); }
+                                85% { opacity: 0.15; }
+                                100% { transform: translate(100vw, -30px) scale(0.9) rotate(3deg); filter: grayscale(100%) contrast(125%) blur(5px); opacity: 0; }
+                            }
+                            @keyframes midDrift {
+                                0% { transform: translate(-150px, 45px) scale(0.95) rotate(-5deg); filter: grayscale(100%) contrast(125%) blur(4px); opacity: 0; }
+                                15% { opacity: 0.25; }
+                                50% { filter: grayscale(100%) contrast(125%) blur(0px); opacity: 0.45; transform: translate(50vw, 0px) scale(1.05) rotate(0deg); }
+                                85% { opacity: 0.25; }
+                                100% { transform: translate(100vw, -45px) scale(0.95) rotate(5deg); filter: grayscale(100%) contrast(125%) blur(4px); opacity: 0; }
+                            }
+                            @keyframes fgDrift {
+                                0% { transform: translate(-180px, 60px) scale(1.0) rotate(-7deg); filter: grayscale(100%) contrast(125%) blur(3px); opacity: 0; }
+                                15% { opacity: 0.35; }
+                                50% { filter: grayscale(100%) contrast(125%) blur(0px); opacity: 0.6; transform: translate(50vw, 0px) scale(1.15) rotate(0deg); }
+                                85% { opacity: 0.35; }
+                                100% { transform: translate(100vw, -60px) scale(1.0) rotate(7deg); filter: grayscale(100%) contrast(125%) blur(3px); opacity: 0; }
+                            }
+                        `}</style>
+                        
+                        {/* Floating Images Background */}
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                            {floatingImages.map((img, i) => (
+                                <img
+                                    key={i}
+                                    src={`hover_images/${encodeURIComponent(img.name)}`}
+                                    alt=""
+                                    className="absolute rounded-xl object-cover mix-blend-luminosity grayscale contrast-125"
+                                    style={{
+                                        top: img.top,
+                                        width: img.size,
+                                        height: img.size,
+                                        animation: `${img.anim} ${img.duration} linear infinite`,
+                                        animationDelay: img.delay,
+                                        left: '0px',
+                                    }}
+                                />
+                            ))}
+                        </div>
+
                         {/* Background grid design */}
-                        <div className="absolute inset-0 opacity-15 pointer-events-none">
+                        <div className="absolute inset-0 opacity-15 pointer-events-none z-0">
                             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
                                 <defs>
                                     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -411,14 +541,14 @@
                             </svg>
                         </div>
                         {/* Glowing orb accent */}
-                        <div className="absolute -top-40 -right-40 w-96 h-96 bg-rose-700/20 rounded-full blur-3xl pointer-events-none"></div>
-                        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-700/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -top-40 -right-40 w-96 h-96 bg-rose-700/20 rounded-full blur-3xl pointer-events-none z-0"></div>
+                        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-700/10 rounded-full blur-3xl pointer-events-none z-0"></div>
 
-                        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white">
+                        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-lg">
                                 <span className="bg-gradient-to-r from-rose-200 via-rose-100 to-indigo-200 bg-clip-text text-transparent">RADEO-Net</span>
                             </h1>
-                            <p className="text-slate-300 text-base md:text-lg max-w-2xl mx-auto font-medium">
+                            <p className="text-slate-300 text-base md:text-lg max-w-2xl mx-auto font-medium drop-shadow-md">
                                 The internet-scale medical imaging repository used for training the RADEO radiology foundation model.
                             </p>
                         </div>
@@ -515,13 +645,13 @@
                                 </div>
 
                                 {/* Table Structure */}
-                                <div className="bg-white shadow-md border border-gray-100 sm:rounded-2xl overflow-hidden">
+                                <div className="bg-white shadow-xl shadow-slate-200/40 ring-1 ring-slate-100 sm:rounded-3xl overflow-hidden font-inter">
                                     {/* Table Header Summary & Export */}
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-5 border-b border-gray-100 bg-white gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-8 py-6 border-b border-slate-100 bg-white/80 backdrop-blur-md gap-4">
                                         <div>
-                                            <h2 className="text-lg font-bold text-gray-900">Medical Datasets Catalog</h2>
-                                            <p className="mt-1 text-sm text-gray-500">
-                                                Showing <span className="font-semibold text-aggie-maroon">{filteredData.length}</span> datasets matching your criteria
+                                            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Medical Datasets Catalog</h2>
+                                            <p className="mt-1.5 text-sm font-medium text-slate-500">
+                                                Showing <span className="font-bold text-aggie-maroon">{filteredData.length}</span> datasets matching your criteria
                                             </p>
                                         </div>
                                         <div>
@@ -529,7 +659,7 @@
                                                 type="button"
                                                 onClick={handleExportCSV}
                                                 disabled={filteredData.length === 0}
-                                                className="inline-flex items-center gap-2 rounded-lg bg-aggie-maroon px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-aggie-maroon transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                className="inline-flex items-center gap-2 rounded-xl bg-aggie-maroon px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-aggie-maroon/20 hover:bg-red-900 hover:shadow-red-900/30 focus:outline-none focus:ring-2 focus:ring-aggie-maroon focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -540,26 +670,26 @@
                                     </div>
 
                                     <div className="overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50/75 border-b border-gray-200">
+                                        <table className="min-w-full divide-y divide-slate-100">
+                                            <thead className="bg-slate-50/80 border-b border-slate-200">
                                                 <tr>
-                                                    <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dataset Name</th>
-                                                    <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Modality</th>
-                                                    <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Body Part</th>
-                                                    <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Anatomical Area</th>
-                                                    <th scope="col" className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dataset Size</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Dataset Name</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Modality</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Body Part</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Anatomical Area</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Dataset Size</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-gray-100 bg-white">
+                                            <tbody className="divide-y divide-slate-50 bg-white">
                                                 {filteredData.length > 0 ? filteredData.map((row, idx) => (
-                                                    <tr key={`${row.name}-${idx}`} className="hover:bg-slate-50/70 transition-colors duration-150">
-                                                        <td className="py-4 px-6 text-sm font-semibold text-gray-900 break-words max-w-xs">
+                                                    <tr key={`${row.name}-${idx}`} className="group hover:bg-slate-50/50 transition-all duration-300 ease-out">
+                                                        <td className="py-5 px-8 text-sm font-semibold text-slate-900 break-words max-w-xs transition-colors duration-300">
                                                             {row.website ? (
                                                                 <a
                                                                     href={row.website}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="text-aggie-maroon hover:text-red-900 hover:underline decoration-2 underline-offset-2 transition-all"
+                                                                    className="text-aggie-maroon hover:text-red-900 hover:underline decoration-aggie-maroon/30 decoration-2 underline-offset-4 transition-all duration-300"
                                                                 >
                                                                     {row.name}
                                                                 </a>
@@ -567,25 +697,26 @@
                                                                 row.name
                                                             )}
                                                         </td>
-                                                        <td className="py-4 px-6 text-sm text-gray-500">
+                                                        <td className="py-5 px-8 text-sm text-slate-500">
                                                             <div className="flex flex-wrap gap-1.5">
-                                                                {row.modality.split(',').map((mod, i) => {
+                                                                {row.modality.split(/[;,]/).map((mod, i) => {
                                                                     const m = mod.trim();
+                                                                    // Revert to original modality rendering style for standard Modality column values:
                                                                     let badgeClass = "bg-slate-50 text-slate-700 border-slate-200/80";
-                                                                    if (/CT & PET/i.test(m)) badgeClass = "bg-cyan-50 text-cyan-700 border-cyan-200/60";
-                                                                    else if (/MRI/i.test(m)) badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-                                                                    else if (/X-Ray/i.test(m)) badgeClass = "bg-violet-50 text-violet-700 border-violet-200/60";
-                                                                    else if (/Ultrasound/i.test(m)) badgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
-                                                                    else if (/Microscopy/i.test(m)) badgeClass = "bg-purple-50 text-purple-700 border-purple-200/60";
-                                                                    else if (/Fundus/i.test(m)) badgeClass = "bg-teal-50 text-teal-700 border-teal-200/60";
-                                                                    else if (/OCTA/i.test(m)) badgeClass = "bg-indigo-50 text-indigo-700 border-indigo-200/60";
-                                                                    else if (/Endoscopy/i.test(m)) badgeClass = "bg-orange-50 text-orange-700 border-orange-200/60";
-                                                                    else if (/Dermoscopy/i.test(m)) badgeClass = "bg-rose-50 text-rose-700 border-rose-200/60";
-
+                                                                    if (/CT/i.test(m)) badgeClass = "bg-sky-50 text-sky-700 border-sky-200/60";
+                                                                    else if (/MR|MRI/i.test(m)) badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
+                                                                    else if (/X-Ray|XR|Radiograph/i.test(m)) badgeClass = "bg-violet-50 text-violet-700 border-violet-200/60";
+                                                                    else if (/US|Ultrasound/i.test(m)) badgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
+                                                                    else if (/PET/i.test(m)) badgeClass = "bg-rose-50 text-rose-700 border-rose-200/60";
+                                                                    else if (/Mammography|MG/i.test(m)) badgeClass = "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/60";
+                                                                    else if (/Pathology/i.test(m)) badgeClass = "bg-teal-50 text-teal-700 border-teal-200/60";
+ 
                                                                     return (
                                                                         <span
                                                                             key={i}
-                                                                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-all duration-150 cursor-help ${badgeClass}`}
+                                                                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeClass}`}
+                                                                            /*
+                                                                            // Broad modality hover preview commented out for future use:
                                                                             onMouseEnter={() => {
                                                                                 const normalized = m.toLowerCase().replace(/amp/g, '').replace(/and/g, '').replace(/[^a-z0-9]/g, '');
                                                                                 console.log("Hovered modality raw:", m, "Normalized key:", normalized, "Image file:", modalityImages[normalized]);
@@ -593,6 +724,7 @@
                                                                             }}
                                                                             onMouseMove={(e) => handleMouseMove(e, m)}
                                                                             onMouseLeave={() => setHoveredModality(null)}
+                                                                            */
                                                                         >
                                                                             {m}
                                                                         </span>
@@ -600,18 +732,21 @@
                                                                 })}
                                                             </div>
                                                         </td>
-                                                        <td className="whitespace-nowrap py-4 px-6 text-sm">
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200/50">
+                                                        <td className="whitespace-nowrap py-5 px-8 text-sm">
+                                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border shadow-sm ${getBadgeColorClass(row.bodyPart)}`}>
                                                                 {row.bodyPart}
                                                             </span>
                                                         </td>
-                                                        <td className="whitespace-nowrap py-4 px-6 text-sm">
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-indigo-50/70 text-indigo-700 border border-indigo-100/60">
+                                                        <td className="whitespace-nowrap py-5 px-8 text-sm">
+                                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border shadow-sm ${getBadgeColorClass(row.anatomicalArea)}`}>
                                                                 {row.anatomicalArea}
                                                             </span>
                                                         </td>
-                                                        <td className="whitespace-nowrap py-4 px-6 text-sm">
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100/60">
+                                                        <td className="whitespace-nowrap py-5 px-8 text-sm">
+                                                            <span
+                                                                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold shadow-sm"
+                                                                style={getSizeHeatmapStyle(row.datasetSize, numericSizes)}
+                                                            >
                                                                 {row.datasetSize}
                                                             </span>
                                                         </td>
@@ -645,8 +780,9 @@
                         </div>
                     </footer>
 
-                    {/* Hover Image Tooltip */}
-                    {hoveredModality && modalityImages[hoveredModality.toLowerCase().replace(/amp/g, '').replace(/and/g, '').replace(/[^a-z0-9]/g, '')] && (
+                    {/* Hover Image Tooltip (Commented out for future use) */}
+                    {/*
+                    hoveredModality && modalityImages[hoveredModality.toLowerCase().replace(/amp/g, '').replace(/and/g, '').replace(/[^a-z0-9]/g, '')] && (
                         <div
                             className="fixed z-50 pointer-events-none p-2 bg-white/95 backdrop-blur-sm border border-slate-200/80 shadow-2xl rounded-xl flex flex-col items-center gap-1.5 transition-all duration-100 ease-out"
                             style={{
@@ -664,7 +800,8 @@
                                 {hoveredModality}
                             </div>
                         </div>
-                    )}
+                    )
+                    */}
                 </div>
             );
         };
