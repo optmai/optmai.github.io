@@ -254,32 +254,41 @@
                 return colors[Math.abs(hash) % colors.length];
             };
 
-            // Heatmap: green (small) → yellow → red (large) for numeric dataset sizes.
-            // Returns an inline style object; Unknown / non-numeric gets a neutral grey.
-            const getSizeHeatmapStyle = (sizeStr, allSizes) => {
-                const n = parseFloat(String(sizeStr).replace(/,/g, ''));
-                if (isNaN(n) || n <= 0) return { background: '#f1f5f9', color: '#475569', border: '1px solid rgba(203,213,225,0.6)' };
-                const logN = Math.log10(n);
-                const logMin = Math.log10(Math.max(1, Math.min(...allSizes.filter(x => x > 0))));
-                const logMax = Math.log10(Math.max(...allSizes.filter(x => x > 0)));
-                const t = logMin === logMax ? 0.5 : Math.max(0, Math.min(1, (logN - logMin) / (logMax - logMin)));
-                // green #22c55e → yellow #eab308 → red #ef4444
-                let r, g, b;
-                if (t < 0.5) {
-                    const s = t * 2;
-                    r = Math.round(34  + (234 - 34)  * s);
-                    g = Math.round(197 + (179 - 197) * s);
-                    b = Math.round(94  + (8   - 94)  * s);
-                } else {
-                    const s = (t - 0.5) * 2;
-                    r = Math.round(234 + (239 - 234) * s);
-                    g = Math.round(179 + (68  - 179) * s);
-                    b = Math.round(8   + (68  - 8)   * s);
+            // Fancy Numeric Cell representation for sizes and images
+            const FancyNumericCell = ({ valStr, allSizes }) => {
+                const n = parseFloat(String(valStr).replace(/,/g, ''));
+                if (isNaN(n) || n <= 0) {
+                    return (
+                        <span className="text-slate-400 font-medium text-xs">Unknown</span>
+                    );
                 }
-                const bg = `rgba(${r},${g},${b},0.15)`;
-                const text = `rgb(${Math.round(r*0.6)},${Math.round(g*0.6)},${Math.round(b*0.6)})`;
-                const border = `rgba(${r},${g},${b},0.35)`;
-                return { background: bg, color: text, border: `1px solid ${border}` };
+                
+                // If there are no valid sizes (all sizes are zero/empty array), logMin and logMax might be invalid
+                const validSizes = allSizes.filter(x => x > 0);
+                let t = 0.5;
+                if (validSizes.length > 0) {
+                    const logN = Math.log10(n);
+                    const logMin = Math.log10(Math.max(1, Math.min(...validSizes)));
+                    const logMax = Math.log10(Math.max(...validSizes));
+                    t = logMin === logMax ? 0.5 : Math.max(0, Math.min(1, (logN - logMin) / (logMax - logMin)));
+                }
+                
+                // Vibrant colors: Blue (small) -> Purple -> Red (large)
+                // HSL Hue from 220 (Blue) down to 0 (Red)
+                const hue = 220 - (t * 220); 
+                const color = `hsl(${hue}, 95%, 45%)`;
+                const barColor = `hsl(${hue}, 95%, 60%)`;
+
+                return (
+                    <div className="flex flex-col items-start gap-1 w-24">
+                        <span className="text-sm font-bold tracking-tight leading-none" style={{ color: color }}>
+                            {valStr}
+                        </span>
+                        <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(5, t * 100)}%`, backgroundColor: barColor }}></div>
+                        </div>
+                    </div>
+                );
             };
             /*
             // Broad modality hover preview state & handlers (commented out for future use):
@@ -386,7 +395,12 @@
                                 const bodyPartVal      = normalize(row['Body Part']);
                                 const anatomicalAreaVal = normalize(row['Anatomical Area']);
                                 const modalityVal      = normalize(row['Modality']);
-                                const datasetSizeVal   = normalize(row['Dataset Size']);
+                                let datasetSizeVal     = normalize(row['Dataset Size']);
+                                const imagesVal        = normalize(row['Processed Images']);
+
+                                if (datasetSizeVal === 'Unknown' && imagesVal !== 'Unknown') {
+                                    datasetSizeVal = imagesVal;
+                                }
 
                                 return {
                                     name: nameVal,
@@ -395,6 +409,7 @@
                                     anatomicalArea: anatomicalAreaVal,
                                     modality: modalityVal,
                                     datasetSize: datasetSizeVal,
+                                    images: imagesVal,
                                 };
                             });
 
@@ -451,14 +466,22 @@
                     .filter(n => !isNaN(n) && n > 0);
             }, [data]);
 
+            // Pre-compute all numeric images for the heatmap scale
+            const numericImages = useMemo(() => {
+                return data
+                    .map(item => parseFloat(String(item.images).replace(/,/g, '')))
+                    .filter(n => !isNaN(n) && n > 0);
+            }, [data]);
+
             const handleExportCSV = () => {
-                const headers = ['Dataset Name', 'Modality', 'Body Part', 'Anatomical Area', 'Dataset Size', 'Website URL'];
+                const headers = ['Dataset Name', 'Modality', 'Body Part', 'Anatomical Area', 'Dataset Size', 'Images', 'Website URL'];
                 const rows = filteredData.map(item => [
                     item.name,
                     item.modality,
                     item.bodyPart,
                     item.anatomicalArea,
                     item.datasetSize,
+                    item.images,
                     item.website || ''
                 ]);
 
@@ -678,6 +701,7 @@
                                                     <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Body Part</th>
                                                     <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Anatomical Area</th>
                                                     <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Dataset Size</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Images</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50 bg-white">
@@ -743,12 +767,10 @@
                                                             </span>
                                                         </td>
                                                         <td className="whitespace-nowrap py-5 px-8 text-sm">
-                                                            <span
-                                                                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold shadow-sm"
-                                                                style={getSizeHeatmapStyle(row.datasetSize, numericSizes)}
-                                                            >
-                                                                {row.datasetSize}
-                                                            </span>
+                                                            <FancyNumericCell valStr={row.datasetSize} allSizes={numericSizes} />
+                                                        </td>
+                                                        <td className="whitespace-nowrap py-5 px-8 text-sm">
+                                                            <FancyNumericCell valStr={row.images} allSizes={numericImages} />
                                                         </td>
                                                     </tr>
                                                 )) : (
