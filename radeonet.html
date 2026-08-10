@@ -395,8 +395,8 @@
                                 const bodyPartVal      = normalize(row['Body Part']);
                                 const anatomicalAreaVal = normalize(row['Anatomical Area']);
                                 const modalityVal      = normalize(row['Modality']);
-                                let datasetSizeVal     = normalize(row['Samples']);
-                                const imagesVal        = normalize(row['Images Processed']);
+                                let datasetSizeVal     = normalize(row['Dataset Size']);
+                                const imagesVal        = normalize(row['Processed Images']);
 
                                 if (datasetSizeVal === 'Unknown' && imagesVal !== 'Unknown') {
                                     datasetSizeVal = imagesVal;
