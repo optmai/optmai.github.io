@@ -377,15 +377,12 @@
                             return (s === '' || s === '0') ? fallback : s;
                         };
 
-                        const seenNames = new Set();
                         const parsedData = jsonData
                             .filter(row => {
                                 const rawName = row['Name'] !== undefined && row['Name'] !== null ? String(row['Name']).trim() : '';
                                 // Skip blank or literal "0" names
                                 if (rawName === '' || rawName === '0') return false;
-                                // Deduplicate: keep first occurrence only
-                                if (seenNames.has(rawName)) return false;
-                                seenNames.add(rawName);
+                                // Keeping all duplicate dataset names as requested.
                                 return true;
                             })
                             .map(row => {
