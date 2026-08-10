@@ -474,7 +474,7 @@
             }, [data]);
 
             const handleExportCSV = () => {
-                const headers = ['Dataset Name', 'Modality', 'Body Part', 'Anatomical Area', 'Dataset Size', 'Images', 'Website URL'];
+                const headers = ['Dataset Name', 'Modality', 'Body Part', 'Anatomical Area', 'Samples', 'Images Processed', 'Website URL'];
                 const rows = filteredData.map(item => [
                     item.name,
                     item.modality,
@@ -700,8 +700,8 @@
                                                     <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Modality</th>
                                                     <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Body Part</th>
                                                     <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Anatomical Area</th>
-                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Dataset Size</th>
-                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Images</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Samples</th>
+                                                    <th scope="col" className="py-5 px-8 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Images Processed</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50 bg-white">
