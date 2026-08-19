@@ -59,6 +59,17 @@
         .ring-aggie-maroon {
             --tw-ring-color: #500000;
         }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
     </style>
 </head>
 
@@ -209,21 +220,16 @@
         */
 
         const floatingImages = [
-            // Background Layer (bgDrift): Small, slow, slightly blurred
-            { name: 'Microscopy.jpg', top: '10%', duration: '60s', delay: '0s', size: '55px', anim: 'bgDrift' },
-            { name: 'OCT.jpeg', top: '35%', duration: '55s', delay: '-18s', size: '60px', anim: 'bgDrift' },
-            { name: 'OCTA.jpg', top: '55%', duration: '58s', delay: '-35s', size: '50px', anim: 'bgDrift' },
-            
-            // Midground Layer (midDrift): Medium size, moderate speed
-            { name: 'CT & PET.jpg', top: '15%', duration: '44s', delay: '-8s', size: '85px', anim: 'midDrift' },
-            { name: 'Dermoscopy.jpg', top: '30%', duration: '40s', delay: '-22s', size: '90px', anim: 'midDrift' },
-            { name: 'Endoscopy.jpg', top: '45%', duration: '46s', delay: '-32s', size: '80px', anim: 'midDrift' },
-            { name: 'Fundus.jpg', top: '60%', duration: '42s', delay: '-14s', size: '95px', anim: 'midDrift' },
-            
-            // Foreground Layer (fgDrift): Large, faster, sharp
-            { name: 'MRI.jpg', top: '5%', duration: '32s', delay: '-4s', size: '120px', anim: 'fgDrift' },
-            { name: 'X-Ray.jpg', top: '25%', duration: '28s', delay: '-16s', size: '130px', anim: 'fgDrift' },
-            { name: 'Ultrasound.jpg', top: '40%', duration: '30s', delay: '-26s', size: '125px', anim: 'fgDrift' },
+            { name: 'Microscopy.jpg', top: '10%', left: '5%', size: '90px', rotate: '-12deg' },
+            { name: 'OCT.jpeg', top: '60%', left: '8%', size: '110px', rotate: '8deg' },
+            { name: 'OCTA.jpg', top: '25%', left: '18%', size: '85px', rotate: '-5deg' },
+            { name: 'CT & PET.jpg', top: '75%', left: '20%', size: '120px', rotate: '15deg' },
+            { name: 'Dermoscopy.jpg', top: '15%', right: '20%', size: '100px', rotate: '12deg' },
+            { name: 'Endoscopy.jpg', top: '65%', right: '18%', size: '95px', rotate: '-8deg' },
+            { name: 'Fundus.jpg', top: '20%', right: '5%', size: '110px', rotate: '18deg' },
+            { name: 'MRI.jpg', top: '70%', right: '5%', size: '130px', rotate: '-10deg' },
+            { name: 'X-Ray.jpg', top: '10%', left: '32%', size: '105px', rotate: '6deg' },
+            { name: 'Ultrasound.jpg', top: '75%', right: '35%', size: '125px', rotate: '-14deg' },
         ];
 
         const App = () => {
@@ -390,8 +396,27 @@
                                 // BioVFM Website sheet uses 'Link' for the dataset URL
                                 const websiteVal = row['Link'] !== undefined && row['Link'] !== null ? String(row['Link']).trim() : '';
                                 const bodyPartVal      = normalize(row['Body Part']);
-                                const anatomicalAreaVal = normalize(row['Anatomical Area']);
-                                const modalityVal      = normalize(row['Modality']);
+                                let anatomicalAreaVal = normalize(row['Anatomical Area']);
+                                if (anatomicalAreaVal !== 'Unknown') {
+                                    if (/^lungs?$/i.test(anatomicalAreaVal)) {
+                                        anatomicalAreaVal = 'Lungs';
+                                    } else if (/^whole\s*body$/i.test(anatomicalAreaVal)) {
+                                        anatomicalAreaVal = 'Whole Body';
+                                    }
+                                }
+                                let modalityVal = normalize(row['Website Modality']);
+                                if (modalityVal === 'Unknown') {
+                                    modalityVal = normalize(row['Modality']);
+                                }
+                                
+                                if (modalityVal !== 'Unknown') {
+                                    const mods = modalityVal.split(/[;,]/).map(m => {
+                                        const trimmed = m.trim();
+                                        if (/X[-‑\s]?Ray|XR|Radiograph/i.test(trimmed)) return 'X-Ray';
+                                        return trimmed;
+                                    }).filter(Boolean);
+                                    modalityVal = [...new Set(mods)].join('; ');
+                                }
                                 let datasetSizeVal     = normalize(row['Dataset Size']);
                                 const imagesVal        = normalize(row['Processed Images']);
 
@@ -456,6 +481,39 @@
 
 
 
+            // Compute global stats for the top bar
+            const globalStats = useMemo(() => {
+                let totalDatasets = data.length;
+                let totalImages = 0;
+                const modalityCounts = {};
+
+                data.forEach(item => {
+                    const imgs = parseFloat(String(item.images).replace(/,/g, ''));
+                    if (!isNaN(imgs) && imgs > 0) {
+                        totalImages += imgs;
+                    }
+
+                    if (item.modality) {
+                        item.modality.split(/[;,]/).forEach(m => {
+                            const t = m.trim();
+                            if (t && t !== 'Unknown') {
+                                modalityCounts[t] = (modalityCounts[t] || 0) + 1;
+                            }
+                        });
+                    }
+                });
+
+                const formattedImages = totalImages >= 1000000 
+                    ? (totalImages / 1000000).toFixed(1) + 'M' 
+                    : totalImages >= 1000 
+                        ? (totalImages / 1000).toFixed(1) + 'K' 
+                        : totalImages.toString();
+
+                const sortedModalities = Object.entries(modalityCounts).sort((a, b) => b[1] - a[1]);
+
+                return { totalDatasets, totalImages: formattedImages, sortedModalities };
+            }, [data]);
+
             // Pre-compute all numeric sizes for the heatmap scale
             const numericSizes = useMemo(() => {
                 return data
@@ -504,46 +562,23 @@
             return (
                 <div className="min-h-screen flex flex-col font-sans">
                     {/* Header */}
-                    <header className="bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950 text-white relative overflow-hidden py-16 border-b border-rose-900/40">
-                        <style>{`
-                            @keyframes bgDrift {
-                                0% { transform: translate(-120px, 30px) scale(0.9) rotate(-3deg); filter: grayscale(100%) contrast(125%) blur(5px); opacity: 0; }
-                                15% { opacity: 0.15; }
-                                50% { filter: grayscale(100%) contrast(125%) blur(1.5px); opacity: 0.25; transform: translate(50vw, 0px) scale(0.95) rotate(0deg); }
-                                85% { opacity: 0.15; }
-                                100% { transform: translate(100vw, -30px) scale(0.9) rotate(3deg); filter: grayscale(100%) contrast(125%) blur(5px); opacity: 0; }
-                            }
-                            @keyframes midDrift {
-                                0% { transform: translate(-150px, 45px) scale(0.95) rotate(-5deg); filter: grayscale(100%) contrast(125%) blur(4px); opacity: 0; }
-                                15% { opacity: 0.25; }
-                                50% { filter: grayscale(100%) contrast(125%) blur(0px); opacity: 0.45; transform: translate(50vw, 0px) scale(1.05) rotate(0deg); }
-                                85% { opacity: 0.25; }
-                                100% { transform: translate(100vw, -45px) scale(0.95) rotate(5deg); filter: grayscale(100%) contrast(125%) blur(4px); opacity: 0; }
-                            }
-                            @keyframes fgDrift {
-                                0% { transform: translate(-180px, 60px) scale(1.0) rotate(-7deg); filter: grayscale(100%) contrast(125%) blur(3px); opacity: 0; }
-                                15% { opacity: 0.35; }
-                                50% { filter: grayscale(100%) contrast(125%) blur(0px); opacity: 0.6; transform: translate(50vw, 0px) scale(1.15) rotate(0deg); }
-                                85% { opacity: 0.35; }
-                                100% { transform: translate(100vw, -60px) scale(1.0) rotate(7deg); filter: grayscale(100%) contrast(125%) blur(3px); opacity: 0; }
-                            }
-                        `}</style>
+                    <header className="bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950 text-white relative overflow-hidden py-16 border-b border-rose-900/40 min-h-[300px] flex items-center">
                         
-                        {/* Floating Images Background */}
+                        {/* Static Images Background */}
                         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                             {floatingImages.map((img, i) => (
                                 <img
                                     key={i}
                                     src={`hover_images/${encodeURIComponent(img.name)}`}
                                     alt=""
-                                    className="absolute rounded-xl object-cover mix-blend-luminosity grayscale contrast-125"
+                                    className="absolute rounded-xl object-cover mix-blend-luminosity grayscale contrast-125 opacity-30 hover:opacity-100 hover:mix-blend-normal hover:grayscale-0 transition-all duration-500 shadow-xl shadow-black/40 pointer-events-auto"
                                     style={{
                                         top: img.top,
                                         width: img.size,
                                         height: img.size,
-                                        animation: `${img.anim} ${img.duration} linear infinite`,
-                                        animationDelay: img.delay,
-                                        left: '0px',
+                                        left: img.left,
+                                        right: img.right,
+                                        transform: `rotate(${img.rotate})`,
                                     }}
                                 />
                             ))}
@@ -587,6 +622,34 @@
                         ) : (
                             <div className="space-y-6">
 
+                                {/* Global Stats Bar */}
+                                {data.length > 0 && (
+                                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                                            <div className="flex flex-col items-center md:items-start shrink-0">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Datasets</span>
+                                                <span className="text-4xl font-black text-aggie-maroon">{globalStats.totalDatasets}</span>
+                                            </div>
+                                            <div className="hidden md:block w-px h-16 bg-slate-100 shrink-0"></div>
+                                            <div className="flex flex-col items-center md:items-start shrink-0">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Images Processed</span>
+                                                <span className="text-4xl font-black text-aggie-maroon">{globalStats.totalImages}</span>
+                                            </div>
+                                            <div className="hidden md:block w-px h-16 bg-slate-100 shrink-0"></div>
+                                            <div className="flex-1 w-full max-w-full overflow-hidden flex flex-col">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block text-center md:text-left">Datasets by Modality</span>
+                                                <div className="flex flex-wrap gap-2 justify-center md:justify-start max-h-24 overflow-y-auto pr-2 custom-scrollbar">
+                                                    {globalStats.sortedModalities.map(([mod, count]) => (
+                                                        <div key={mod} className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-lg px-2.5 py-1 transition-colors hover:bg-slate-100 hover:border-slate-200">
+                                                            <span className="text-xs font-semibold text-slate-700">{mod}</span>
+                                                            <span className="bg-aggie-maroon/10 text-aggie-maroon text-[10px] font-bold px-1.5 py-0.5 rounded-md">{count}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Search & Filters Section */}
                                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
