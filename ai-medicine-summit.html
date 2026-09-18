@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frontiers in AI-Enabled Medicine and Health – Texas A&amp;M University</title>
+<meta name="description" content="A two-day Frontiers in Research Summit at Texas A&M University bringing together leaders in AI, engineering, and medicine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ---- Texas A&M palette (matches research.tamu.edu) ---- */
+  :root{
+    --maroon:#500000;
+    --maroon-dark:#3c0000;
+    --maroon-tint:#f4ecec;
+    --gray-100:#f5f5f5;
+    --gray-300:#d9d9d9;
+    --gray-600:#707070;
+    --text:#333333;
+    --white:#ffffff;
+    --serif-none: "Oswald", "Arial Narrow", sans-serif;
+    --sans: "Open Sans", Arial, sans-serif;
+    --max:1140px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;font-family:var(--sans);color:var(--text);line-height:1.6;background:var(--white);font-size:17px}
+  a{color:var(--maroon)}
+  a:focus-visible,button:focus-visible{outline:3px solid #b3924f;outline-offset:2px}
+  h1,h2,h3{font-family:var(--serif-none);font-weight:500;line-height:1.15;margin:0}
+  h2{font-size:2rem;color:var(--maroon);margin-bottom:1.25rem}
+  h3{font-size:1.25rem;color:var(--text)}
+  p{margin:0 0 1rem}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 1.25rem}
+  .skip{position:absolute;left:-999px;top:0;background:var(--maroon);color:#fff;padding:.5rem 1rem}
+  .skip:focus{left:1rem;top:1rem;z-index:99}
+
+  /* ---- Top bar + nav ---- */
+  .topbar{background:var(--maroon);color:#fff;font-size:.85rem}
+  .topbar .wrap{display:flex;justify-content:space-between;align-items:center;height:36px}
+  .topbar a{color:#fff;text-decoration:none}
+  .topbar a:hover{text-decoration:underline}
+  .nav{background:#fff;border-bottom:1px solid var(--gray-300);position:sticky;top:0;z-index:20}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;min-height:72px;gap:1rem;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:.75rem;text-decoration:none;color:var(--text)}
+  .brand .mark{width:44px;height:44px;background:var(--maroon);color:#fff;font-family:var(--serif-none);font-weight:600;font-size:1.05rem;display:grid;place-items:center;letter-spacing:.02em}
+  .brand .mark img{width:100%;height:100%;object-fit:contain;display:block}
+  .brand .name{font-family:var(--serif-none);font-size:1.2rem;line-height:1.1;color:var(--maroon)}
+  .brand .name small{display:block;font-family:var(--sans);font-size:.75rem;color:var(--gray-600)}
+  .nav ul{list-style:none;display:flex;gap:1.5rem;margin:0;padding:0;flex-wrap:wrap}
+  .nav ul a{text-decoration:none;color:var(--text);font-weight:600;font-size:.95rem;padding:.4rem 0;border-bottom:3px solid transparent}
+  .nav ul a:hover{border-bottom-color:var(--maroon);color:var(--maroon)}
+
+  /* ---- Hero ---- */
+  .hero{background:var(--maroon);color:#fff;padding:4rem 0 3.5rem;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-8%;top:-30%;width:55%;height:180%;background:var(--maroon-dark);transform:skewX(-12deg);opacity:.55}
+  .hero .wrap{position:relative;z-index:1}
+  .hero .kicker{font-size:.95rem;opacity:.9;margin-bottom:1rem}
+  .hero h1{font-size:clamp(2.4rem,6.2vw,5rem);font-weight:500}
+  .hero .lede{font-size:1.15rem;max-width:70ch;margin:1.5rem 0 2rem;opacity:.95}
+  .btn{display:inline-block;background:#fff;color:var(--maroon);font-weight:700;text-decoration:none;padding:.8rem 1.5rem;border:2px solid #fff}
+  .btn:hover{background:transparent;color:#fff}
+  .btn.outline{background:transparent;color:#fff;margin-left:.75rem}
+  .btn.outline:hover{background:#fff;color:var(--maroon)}
+  .facts{display:flex;flex-wrap:wrap;gap:1.25rem 3rem;margin:0 0 2.25rem;padding-top:1.75rem;border-top:1px solid rgba(255,255,255,.35)}
+  .facts div{border-left:3px solid rgba(255,255,255,.5);padding-left:1rem}
+  .facts dt{font-size:.8rem;opacity:.8}
+  .facts dd{margin:0;font-family:var(--serif-none);font-size:1.45rem;line-height:1.2}
+  .crumbs{font-size:.85rem;padding:.9rem 0;border-bottom:1px solid var(--gray-300)}
+  .crumbs ol{list-style:none;display:flex;gap:.5rem;margin:0;padding:0;flex-wrap:wrap}
+  .crumbs li+li::before{content:"/";color:var(--gray-600);margin-right:.5rem}
+  .crumbs a{text-decoration:none}
+  .crumbs a:hover{text-decoration:underline}
+
+  /* ---- Sections ---- */
+  section{padding:4rem 0}
+  section.alt{background:var(--gray-100)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
+  .themes{list-style:none;padding:0;margin:0;display:grid;gap:.75rem}
+  .themes li{background:#fff;border-left:5px solid var(--maroon);padding:.9rem 1.1rem}
+  .themes li span{display:block;font-size:.8rem;color:var(--gray-600)}
+  .themes li strong{font-family:var(--serif-none);font-weight:500;font-size:1.15rem}
+
+  /* ---- Agenda ---- */
+  .tabs{display:flex;gap:0;border-bottom:2px solid var(--gray-300);margin-bottom:2rem}
+  .tab{background:none;border:0;font:inherit;font-family:var(--serif-none);font-size:1.15rem;padding:.75rem 1.5rem;cursor:pointer;color:var(--gray-600);border-bottom:4px solid transparent;margin-bottom:-2px}
+  .tab[aria-selected="true"]{color:var(--maroon);border-bottom-color:var(--maroon)}
+  .tab small{display:block;font-family:var(--sans);font-size:.8rem}
+  .day{display:none}
+  .day.show{display:block}
+  .block{margin-bottom:2.5rem}
+  .block h3{color:var(--maroon);font-size:1.5rem;padding-bottom:.5rem;border-bottom:1px solid var(--gray-300);margin-bottom:.75rem}
+  .sched{width:100%;border-collapse:collapse}
+  .sched tr{border-bottom:1px solid var(--gray-300)}
+  .sched tr:last-child{border-bottom:0}
+  .sched td{padding:.85rem .5rem .85rem 0;vertical-align:top}
+  .sched .t{width:9.5rem;font-weight:600;color:var(--maroon);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .sched .what strong{display:block;font-weight:600}
+  .sched .what span{color:var(--gray-600);font-size:.92rem}
+  .sched tr.key td{background:var(--maroon-tint)}
+  .sched tr.key td:first-child{padding-left:.6rem}
+  .sched tr.break td{color:var(--gray-600);font-style:italic}
+  .note{font-size:.92rem;color:var(--gray-600);border-top:1px solid var(--gray-300);padding-top:1rem}
+
+  /* ---- Call for posters ---- */
+  .posters{display:grid;grid-template-columns:1.2fr 1fr;gap:3rem;align-items:start}
+  .posters ul{padding-left:1.2rem;margin:0 0 1rem}
+  .posters li{margin-bottom:.4rem}
+  .keydates{background:var(--gray-100);border-top:5px solid var(--maroon);padding:1.5rem}
+  .keydates h3{color:var(--maroon);margin-bottom:1rem}
+  .keydates dl{margin:0}
+  .keydates dt{font-size:.85rem;color:var(--gray-600)}
+  .keydates dd{margin:0 0 1rem;font-family:var(--serif-none);font-size:1.3rem}
+  .keydates dd:last-child{margin-bottom:0}
+  .keydates .btn{background:var(--maroon);color:#fff;border-color:var(--maroon);margin-top:1.25rem}
+  .keydates .btn:hover{background:#fff;color:var(--maroon)}
+  .tbd{font-size:.85rem;color:var(--gray-600);font-style:italic}
+  @media (max-width:860px){.posters{grid-template-columns:1fr}}
+
+  /* ---- Organizers ---- */
+  .people{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.5rem 2rem;list-style:none;margin:0;padding:0}
+  .people li{border-top:3px solid var(--maroon);padding-top:.9rem}
+  .photo{margin:0 0 .75rem;width:112px;height:112px;background:var(--maroon-tint);position:relative;overflow:hidden}
+  .photo::before{content:attr(data-initials);position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif-none);font-size:2rem;color:var(--maroon)}
+  .photo img{position:relative;width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+  .people .who a{color:var(--text);text-decoration:none;font-size:inherit;word-break:normal}
+  .people .who a:hover{color:var(--maroon);text-decoration:underline}
+  .people .who{font-family:var(--serif-none);font-size:1.25rem;font-weight:500}
+  .people .role{font-size:.92rem;color:var(--gray-600);margin:.2rem 0 .4rem}
+  .people .role em{font-style:normal;color:var(--maroon);font-weight:600}
+  .people a{font-size:.9rem;word-break:break-all}
+
+  /* ---- Venue ---- */
+  .venue{display:grid;grid-template-columns:1.1fr 1fr;gap:3rem;align-items:start}
+  .venue iframe{width:100%;aspect-ratio:4/3;border:0;display:block;filter:grayscale(.15)}
+  .venue address{font-style:normal;border-left:5px solid var(--maroon);padding:.25rem 0 .25rem 1.1rem;margin:1.5rem 0}
+  .venue address strong{font-family:var(--serif-none);font-size:1.3rem;font-weight:500}
+  .travel dt{font-weight:700;margin-top:1rem}
+  .travel dd{margin:0}
+
+  /* ---- Sponsors ---- */
+  .tier{font-family:var(--serif-none);font-size:1.1rem;color:var(--maroon);border-bottom:2px solid var(--maroon);display:inline-block;padding-bottom:.25rem;margin-bottom:1.25rem}
+  .sponsor{display:flex;flex-wrap:wrap;gap:2rem}
+  .sponsor .logo{background:#fff;border-top:5px solid var(--maroon);padding:1.75rem 2.5rem;min-width:280px;min-height:120px;display:grid;place-items:center;text-decoration:none}
+  .sponsor .logo img{max-width:260px;max-height:80px;display:block}
+  .sponsor .wordmark{font-family:var(--serif-none);font-size:1.8rem;line-height:1.1;color:var(--text)}
+
+  /* ---- Footer ---- */
+  footer{background:var(--maroon);color:#fff;padding:3rem 0 2rem;font-size:.9rem}
+  footer .wrap{display:grid;grid-template-columns:2fr 1fr 1fr;gap:2rem}
+  footer h3{color:#fff;font-size:1.05rem;margin-bottom:.5rem}
+  footer a{color:#fff}
+  footer .legal{grid-column:1 / -1;border-top:1px solid rgba(255,255,255,.3);padding-top:1rem;margin-top:1rem;display:flex;gap:1.5rem;flex-wrap:wrap;opacity:.85}
+
+  @media (max-width:860px){
+    .two,.venue{grid-template-columns:1fr}
+    .facts{flex-direction:column;gap:1rem}
+    footer .wrap{grid-template-columns:1fr}
+    .sched .t{width:6.5rem;white-space:normal}
+    .btn.outline{margin-left:0;margin-top:.75rem}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="topbar">
+  <div class="wrap">
+    <a href="https://www.tamu.edu">Texas A&amp;M University</a>
+    <a href="https://research.tamu.edu/funding/frontiers-in-research-summits/">Frontiers in Research Summits</a>
+  </div>
+</div>
+
+<nav class="nav" aria-label="Page">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="mark"><img src="https://research.tamu.edu/wp-content/themes/dor-wp-aux-theme/dist/images/favicon/mstile-144x144.png" alt="Texas A&amp;M University" onerror="this.parentNode.textContent='AM'"></span>
+      <span class="name">Division of Research<small>Frontiers in Research Summits</small></span>
+    </a>
+    <ul>
+      <li><a href="#about">About</a></li>
+      <li><a href="#agenda">Agenda</a></li>
+      <li><a href="#posters">Call for posters</a></li>
+      <li><a href="#organizers">Organizers</a></li>
+      <li><a href="#venue">Venue</a></li>
+      <li><a href="#sponsors">Sponsors</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="kicker">A Texas A&amp;M Frontiers in Research Summit</p>
+    <h1>Frontiers in AI-Enabled Medicine and Health</h1>
+    <p class="lede">Two days connecting national leaders in AI, engineering, medicine, industry, and federal agencies to set research priorities for foundation models, trustworthy AI, medical imaging, and clinical language models in healthcare.</p>
+    <dl class="facts">
+      <div><dt>Dates</dt><dd>March 9–10, 2027</dd></div>
+      <div><dt>Location</dt><dd>Memorial Student Center, Gates Ballroom<br>Texas A&amp;M University, College Station</dd></div>
+      <div><dt>Format</dt><dd>Keynotes, invited talks,<br>panel, and poster sessions</dd></div>
+    </dl>
+    <!-- Replace # with the registration link when available -->
+    <a class="btn" href="#">Register</a>
+    <a class="btn outline" href="#agenda">View agenda</a>
+    <a class="btn outline" href="#posters">Call for posters</a>
+  </div>
+</header>
+
+<div class="crumbs"><div class="wrap">
+  <ol>
+    <li><a href="https://research.tamu.edu">Home</a></li>
+    <li><a href="https://research.tamu.edu/funding/">Funding</a></li>
+    <li><a href="https://research.tamu.edu/funding/frontiers-in-research-summits/">Frontiers in Research Summits</a></li>
+    <li>Frontiers in AI-Enabled Medicine and Health</li>
+  </ol>
+</div></div>
+
+<main id="main">
+
+<section id="about">
+  <div class="wrap two">
+    <div>
+      <h2>About the summit</h2>
+      <p>Artificial intelligence is redefining how diseases are detected, diagnosed, and managed. Foundation and multimodal models can now integrate medical imaging, electronic health records, genomics, and wearable data into unified systems that augment clinical expertise at scale. Yet significant barriers remain: data scarcity, generalization, interpretability, robustness, regulatory validation, and ethical deployment in clinical settings.</p>
+      <p>This summit convenes leaders from academia, healthcare systems, industry, and federal agencies to identify priority research directions, catalyze interdisciplinary partnerships, and strengthen Texas A&amp;M's position at the intersection of AI, engineering, and medicine.</p>
+      <p>A post-summit white paper will define three to five high-impact interdisciplinary thrust areas, identify target federal and industry funding mechanisms, and outline partnership models for center-scale initiatives and translational programs.</p>
+    </div>
+    <div>
+      <h2>Four sessions</h2>
+      <ul class="themes">
+        <li><span>Day 1, morning</span><strong>Foundation and Multimodal Models for Medicine and Health</strong></li>
+        <li><span>Day 1, afternoon</span><strong>Trustworthy and Responsible AI for Medicine and Health</strong></li>
+        <li><span>Day 2, morning</span><strong>AI for Medical Imaging and Diagnosis</strong></li>
+        <li><span>Day 2, afternoon</span><strong>Agentic AI and Clinical LLMs for Healthcare</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="agenda" class="alt">
+  <div class="wrap">
+    <h2>Agenda</h2>
+    <p style="max-width:70ch">Each session opens with two 45-minute keynotes followed by three 20-minute invited talks. Day 1 closes with a panel discussion; Day 2 includes an industry sponsor talk and the best poster award. Times are Central and subject to change; speakers will be announced as they are confirmed.</p>
+
+    <div class="tabs" role="tablist" aria-label="Summit days">
+      <button class="tab" role="tab" id="tab-1" aria-selected="true" aria-controls="day-1">Day 1<small>Tuesday, March 9</small></button>
+      <button class="tab" role="tab" id="tab-2" aria-selected="false" aria-controls="day-2" tabindex="-1">Day 2<small>Wednesday, March 10</small></button>
+    </div>
+
+    <div class="day show" id="day-1" role="tabpanel" aria-labelledby="tab-1">
+      <div class="block">
+        <h3>Morning — Foundation and Multimodal Models for Medicine and Health</h3>
+        <table class="sched">
+          <tr><td class="t">9:00 – 9:30</td><td class="what"><strong>Opening remarks</strong><span>Texas A&amp;M University leadership</span></td></tr>
+          <tr class="key"><td class="t">9:30 – 10:15</td><td class="what"><strong>Keynote 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="break"><td class="t">10:15 – 10:30</td><td>Break</td></tr>
+          <tr class="key"><td class="t">10:30 – 11:15</td><td class="what"><strong>Keynote 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">11:15 – 11:35</td><td class="what"><strong>Invited talk 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">11:35 – 11:55</td><td class="what"><strong>Invited talk 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">11:55 – 12:15</td><td class="what"><strong>Invited talk 3</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">12:15 – 1:30</td><td class="what"><strong>Lunch</strong></td></tr>
+        </table>
+      </div>
+      <div class="block">
+        <h3>Afternoon — Trustworthy and Responsible AI for Medicine and Health</h3>
+        <table class="sched">
+          <tr class="key"><td class="t">1:30 – 2:15</td><td class="what"><strong>Keynote 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="key"><td class="t">2:15 – 3:00</td><td class="what"><strong>Keynote 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="break"><td class="t">3:00 – 3:15</td><td>Break</td></tr>
+          <tr><td class="t">3:15 – 3:35</td><td class="what"><strong>Invited talk 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">3:35 – 3:55</td><td class="what"><strong>Invited talk 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">3:55 – 4:15</td><td class="what"><strong>Invited talk 3</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="break"><td class="t">4:15 – 4:30</td><td>Break</td></tr>
+          <tr><td class="t">4:30 – 5:15</td><td class="what"><strong>Panel discussion</strong></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="day" id="day-2" role="tabpanel" aria-labelledby="tab-2" hidden>
+      <div class="block">
+        <h3>Morning — AI for Medical Imaging and Diagnosis</h3>
+        <table class="sched">
+          <tr class="key"><td class="t">9:00 – 9:45</td><td class="what"><strong>Keynote 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="key"><td class="t">9:45 – 10:30</td><td class="what"><strong>Keynote 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="break"><td class="t">10:30 – 10:45</td><td>Break</td></tr>
+          <tr><td class="t">10:45 – 11:05</td><td class="what"><strong>Invited talk 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">11:05 – 11:25</td><td class="what"><strong>Invited talk 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">11:25 – 11:45</td><td class="what"><strong>Invited talk 3</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">11:45 – 12:15</td><td class="what"><strong>Industry sponsor talk</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">12:15 – 1:30</td><td class="what"><strong>Lunch</strong></td></tr>
+        </table>
+      </div>
+      <div class="block">
+        <h3>Afternoon — Agentic AI and Clinical LLMs for Healthcare</h3>
+        <table class="sched">
+          <tr class="key"><td class="t">1:30 – 2:15</td><td class="what"><strong>Keynote 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="key"><td class="t">2:15 – 3:00</td><td class="what"><strong>Keynote 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr class="break"><td class="t">3:00 – 3:15</td><td>Break</td></tr>
+          <tr><td class="t">3:15 – 3:35</td><td class="what"><strong>Invited talk 1</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">3:35 – 3:55</td><td class="what"><strong>Invited talk 2</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">3:55 – 4:15</td><td class="what"><strong>Invited talk 3</strong><span>Speaker to be announced</span></td></tr>
+          <tr><td class="t">4:15 – 4:30</td><td class="what"><strong>Closing remarks and best poster award</strong></td></tr>
+        </table>
+      </div>
+    </div>
+    <p class="note">Posters are on display throughout both days. See the <a href="#posters">call for posters</a> for submission details.</p>
+  </div>
+</section>
+
+<section id="posters">
+  <div class="wrap posters">
+    <div>
+      <h2>Call for posters</h2>
+      <p>The summit invites poster abstracts from graduate students, postdoctoral researchers, and faculty at Texas A&amp;M and partner institutions. Posters are displayed across both days and are a primary venue for meeting speakers and potential collaborators.</p>
+      <h3>Topics</h3>
+      <p>Submissions are welcome on any aspect of AI for medicine and health, including but not limited to the four summit themes:</p>
+      <ul>
+        <li>Foundation and multimodal models for medicine and health</li>
+        <li>Trustworthy and responsible AI for medicine and health</li>
+        <li>AI for medical imaging and diagnosis</li>
+        <li>Agentic AI and clinical large language models for healthcare</li>
+      </ul>
+      <h3>How to submit</h3>
+      <p>Submit a title, author list with affiliations, and an abstract of up to 300 words through the <a href="https://docs.google.com/forms/d/e/1FAIpQLSf-sJ5-ujQDVzg6ObWgZzYQz69t_pkx81fic8fEQkqmZ0vPoQ/viewform" target="_blank" rel="noopener">submission form</a>. Work in progress, recently published work, and preliminary results are all welcome. Poster boards are provided and are 6 ft wide × 4 ft tall (two-sided), with a usable area of 5 ft × 3 ft 10 in. Please print posters no larger than 60 × 46 inches (width × height), landscape orientation; a standard 48 × 36 inch landscape poster fits comfortably.</p>
+      <h3>Best poster award</h3>
+      <p>Posters are judged by the organizing committee and invited speakers. The best poster award is presented at the closing session on Day 2.</p>
+    </div>
+    <aside class="keydates">
+      <h3>Key dates</h3>
+      <dl>
+        <dt>Abstract submission opens</dt><dd>Monday, November 2, 2026</dd>
+        <dt>Abstract deadline</dt><dd>Friday, January 22, 2027<br><small style="font-family:var(--sans);font-size:.85rem;color:var(--gray-600)">11:59 pm Central</small></dd>
+        <dt>Acceptance notification</dt><dd>Friday, February 5, 2027</dd>
+        <dt>Poster sessions</dt><dd>March 9, 2027</dd>
+      </dl>
+      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSf-sJ5-ujQDVzg6ObWgZzYQz69t_pkx81fic8fEQkqmZ0vPoQ/viewform" target="_blank" rel="noopener">Submit an abstract</a>
+      <p class="tbd" style="margin:1rem 0 0">The form accepts submissions from November 2 through the deadline.</p>
+    </aside>
+  </div>
+</section>
+
+<section id="organizers" class="alt">
+  <div class="wrap">
+    <h2>Organizers</h2>
+    <p style="max-width:70ch;margin-bottom:2rem">The organizing committee spans the College of Engineering, the College of Medicine, the School of Engineering Medicine, Texas A&amp;M Health, and TAMU Digital Health, with external participation from industry and the National Academies.</p>
+    <!-- Headshots are linked from official TAMU profile pages. Before publishing, download each image to /img/ and update the src attributes so the page does not depend on those servers. -->
+    <ul class="people">
+      <li>
+        <figure class="photo" data-initials="TY"><img src="https://engineering.tamu.edu/cse/_files/_images/_profile-images/yang-tianbo-profilepic-17aug2022.jpg" alt="Tianbao Yang" loading="lazy" onerror="this.remove()"></figure>
+        <div class="who"><a href="https://engineering.tamu.edu/cse/profiles/yang-tianbao.html">Tianbao Yang</a></div>
+        <div class="role">Professor and Stephen Horn '79 Engineering Excellence Chair<br>Department of Computer Science and Engineering</div>
+        <a href="mailto:tianbao-yang@tamu.edu">tianbao-yang@tamu.edu</a>
+      </li>
+      <li>
+        <figure class="photo" data-initials="IL"><img src="https://medicine.tamu.edu/images/people/israel-liberzon-600x600.jpg" alt="Israel Liberzon" loading="lazy" onerror="this.remove()"></figure>
+        <div class="who"><a href="https://medicine.tamu.edu/faculty-listings/liberzon.html">Israel Liberzon</a></div>
+        <div class="role">Distinguished Professor<br>Department of Psychiatry</div>
+        <a href="mailto:liberzon@tamu.edu">liberzon@tamu.edu</a>
+      </li>
+      <li>
+        <figure class="photo" data-initials="PS"><img src="https://medicine.tamu.edu/_bios/other/ShiremanPaula-_Suit_2019.jpg" alt="Paula K. Shireman" loading="lazy" onerror="this.remove()"></figure>
+        <div class="who"><a href="https://medicine.tamu.edu/faculty-listings/shireman.html">Paula K. Shireman</a></div>
+        <div class="role">Professor<br>College of Medicine</div>
+        <a href="mailto:shireman@exchange.tamu.edu">shireman@exchange.tamu.edu</a>
+      </li>
+      <li>
+        <figure class="photo" data-initials="BM"><img src="https://engineering.tamu.edu/cse/_files/_images/_profile-images/mortazavi-bobak-profilepic.jpg" alt="Bobak Mortazavi" loading="lazy" onerror="this.remove()"></figure>
+        <div class="who"><a href="https://engineering.tamu.edu/cse/profiles/mortazavi-bobak.html">Bobak Mortazavi</a></div>
+        <div class="role">Associate Professor<br>Department of Computer Science and Engineering</div>
+        <a href="mailto:bobakm@tamu.edu">bobakm@tamu.edu</a>
+      </li>
+      <li>
+        <figure class="photo" data-initials="YG"><img src="https://enmed.tamu.edu/wp-content/uploads/2025/11/4.png" alt="Yanmin Gong" loading="lazy" onerror="this.remove()"></figure>
+        <div class="who"><a href="https://enmed.tamu.edu/directory/yanmin-gong-phd/">Yanmin Gong</a></div>
+        <div class="role">Associate Professor<br>School of Engineering Medicine</div>
+        <a href="mailto:yanmin.gong@tamu.edu">yanmin.gong@tamu.edu</a>
+      </li>
+      <li>
+        <figure class="photo" data-initials="KR"><img src="https://health.tamu.edu/images/people/ken-ramos-3.jpg" alt="Kenneth S. Ramos" loading="lazy" onerror="this.remove()"></figure>
+        <div class="who"><a href="https://ibt.tamu.edu/faculty/kenneth-ramos.html">Kenneth S. Ramos</a></div>
+        <div class="role">Distinguished Professor, NAM member<br>Texas A&amp;M Health</div>
+        <a href="mailto:kramos@tamu.edu">kramos@tamu.edu</a>
+      </li>
+      <li>
+        <figure class="photo" data-initials="JC"><img src="https://bios.health.tamu.edu.prod.sites-marcom.cloud.tamu.edu/health/images/jim-colson_headshot-600x600px.jpg" alt="Jim Colson" loading="lazy" onerror="this.remove()"></figure>
+        <div class="who"><a href="https://health.tamu.edu/about/leadership/bios/jim-colson.html">Jim Colson</a></div>
+        <div class="role">Associate Vice President<br>TAMU Digital Health</div>
+        <a href="mailto:jim.colson@tamu.edu">jim.colson@tamu.edu</a>
+      </li>
+      <li>
+        <figure class="photo" data-initials="KM"><img src="https://www.nae.edu/File.aspx?id=133396&amp;v=544485bf" alt="Kyle Myers" loading="lazy" onerror="this.onerror=function(){this.remove()};this.src='img/kyle-myers.jpg'"></figure>
+        <div class="who"><a href="https://engineering.tamu.edu/biomedical/profiles/myers-kyle.html">Kyle Myers</a></div>
+        <div class="role">Puente Solutions LLC; Hagler Fellow, NAE member<br>Department of Biomedical Engineering</div>
+        <a href="mailto:drkylejmyers@gmail.com">drkylejmyers@gmail.com</a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section id="venue">
+  <div class="wrap venue">
+    <div>
+      <h2>Venue</h2>
+      <p>The summit takes place in the Memorial Student Center (MSC) on the Texas A&amp;M University campus in College Station, Texas. Talks are held in the Gates Ballroom, with posters, meals, and the reception in the adjoining space.</p>
+      <address>
+        <strong>Memorial Student Center, Gates Ballroom 2400 and 2600</strong><br>
+        Texas A&amp;M University<br>
+        275 Joe Routt Blvd, College Station, TX 77843
+      </address>
+
+      <dl class="travel">
+        <dt>Flying in</dt>
+        <dd>Easterwood Airport (CLL) is about 10 minutes from campus, with direct service from Dallas/Fort Worth. Houston (IAH) and Austin (AUS) are each roughly a 1 hour 45 minute drive.</dd>
+        <dt>Lodging</dt>
+        <dd>A hotel room block for speakers and attendees will be announced. Booking details and the deadline will appear here.</dd>
+        <dt>Parking</dt>
+        <dd>The Cain Garage and University Center Garage are a short walk from the MSC. Visitor parking details and any validation instructions will be posted before the summit.</dd>
+      </dl>
+    </div>
+    <div>
+      <iframe title="Map of the Memorial Student Center, Texas A&amp;M University" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+        src="https://maps.google.com/maps?q=Memorial%20Student%20Center%2C%20275%20Joe%20Routt%20Blvd%2C%20College%20Station%2C%20TX%2077843&t=&z=16&ie=UTF8&iwloc=&output=embed"></iframe>
+    </div>
+  </div>
+</section>
+
+<section id="sponsors" class="alt">
+  <div class="wrap">
+    <h2>Sponsors</h2>
+    <div class="tier">Platinum sponsor</div>
+    <div class="sponsor">
+      <a class="logo" href="https://www.onesourcecloud.net" target="_blank" rel="noopener" aria-label="OneSource Cloud">
+        <img src="https://cdn.prod.website-files.com/6983857c3bc6d04385b551e6/69b02a07bd2d1182cc113160_Untitled%20design%20(3).svg" alt="OneSource Cloud" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'wordmark',textContent:'OneSource Cloud'}))">
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer id="contact">
+  <div class="wrap">
+    <div>
+      <h3>Frontiers in AI-Enabled Medicine and Health</h3>
+      <p>A Frontiers in Research Summit supported by the Texas A&amp;M University Division of Research. Presented by the College of Engineering, College of Medicine, and School of Engineering Medicine.</p>
+    </div>
+    <div>
+      <h3>Contact</h3>
+      <p>Tianbao Yang<br><a href="mailto:tianbao-yang@tamu.edu">tianbao-yang@tamu.edu</a></p>
+    </div>
+    <div>
+      <h3>Program</h3>
+      <p><a href="https://research.tamu.edu/funding/frontiers-in-research-summits/">Frontiers in Research Summits</a><br><a href="https://research.tamu.edu">Division of Research</a></p>
+    </div>
+    <div class="legal">
+      <span>© 2026 Texas A&amp;M University</span>
+      <a href="https://www.tamu.edu/statements/index.html">Site Policies</a>
+      <a href="https://itaccessibility.tamu.edu/">Accessibility</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const tabs=[...document.querySelectorAll('.tab')];
+  const panels=[...document.querySelectorAll('.day')];
+  function select(i){
+    tabs.forEach((t,j)=>{const on=i===j;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1;});
+    panels.forEach((p,j)=>{p.hidden=i!==j;p.classList.toggle('show',i===j);});
+    tabs[i].focus();
+  }
+  tabs.forEach((t,i)=>{
+    t.addEventListener('click',()=>select(i));
+    t.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight')select((i+1)%tabs.length);
+      if(e.key==='ArrowLeft')select((i-1+tabs.length)%tabs.length);
+    });
+  });
+</script>
+</body>
+</html>
